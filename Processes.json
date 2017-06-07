@@ -1,0 +1,40 @@
+{
+    "procs": [
+        {
+            "num_pages": 4,
+            "arrival_time": 0
+        },
+        {
+            "num_pages": 8,
+            "arrival_time": 0
+        },
+        {
+            "num_pages": 10,
+            "arrival_time": 0
+        },
+        {
+            "num_pages": 3,
+            "arrival_time": 0
+        },
+        {
+            "num_pages": 15,
+            "arrival_time": 3
+        },
+        {
+            "num_pages": 10,
+            "arrival_time": 7
+        },
+        {
+            "num_pages": 3,
+            "arrival_time": 8
+        },
+        {
+            "num_pages": 8,
+            "arrival_time": 8
+        },
+        {
+            "num_pages": 6,
+            "arrival_time": 10
+        }
+    ]
+}
