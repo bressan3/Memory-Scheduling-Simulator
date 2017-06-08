@@ -1,0 +1,9 @@
+{
+    "procs": [
+        {
+            "num_pages": 8,
+            "arrival_time": 0,
+            "page_exec_order": [2, 3, 4, 2 ,1, 3, 7, 5]
+        }
+    ]
+}

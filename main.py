@@ -7,51 +7,62 @@ from Process import Process
 import sys
 import json
 
+process_file = 'Processes3.json'
+
 def print_memory(actual_memory):
     print "======================================="
     for i in xrange(0, len(actual_memory)):
         try:
-            print actual_memory[i].owners_pid
+            print actual_memory[i].owners_pid, " [" + str(actual_memory[i].page_id) + "], ", actual_memory[i].last_used
         except:
             print -1
     print "======================================="
 
+# Lê arquivo de entrada json e gera a lista de processos
+def create_proc_list(file_name, current_cycle = 0):
+    proc_list = []
+    proc_to_be_created_list = []
+    with open(file_name) as proc_file:
+        proc_file_data = json.load(proc_file)
+
+    for i in xrange(0, len(proc_file_data["procs"])):
+        current_proc = proc_file_data["procs"][i]
+        if current_proc["arrival_time"] == current_cycle:
+            proc_list.append(Process(i + 1, current_proc["num_pages"] * OSParams.page_size, current_proc["arrival_time"], current_proc["page_exec_order"]))
+        else:
+            proc_to_be_created_list.append(Process(i + 1, current_proc["num_pages"], current_proc["arrival_time"], current_proc["page_exec_order"]))
+
+    return proc_list, proc_to_be_created_list
+
 # Usa o algorítimo FIFO para a troca de páginas na memória
-def fifo():
+def run(scheduling_policy):
     primaryMemory = PrimaryMemory(OSParams.installed_memory, OSParams.page_size)
     proc_list = [] # Lista de processos em execução
     proc_to_be_created_list = [] # Processos que vão entrar na CPU em ciclos futuros
     proc_dict = {}
     current_cycle = 0
 
-    with open('Processes.json') as proc_file:
-        proc_file_data = json.load(proc_file)
+    proc_list = create_proc_list(process_file)[0]
+    proc_to_be_created_list = create_proc_list(process_file)[1]
 
-    for i in xrange(0, len(proc_file_data["procs"])):
-        current_proc = proc_file_data["procs"][i]
-        if current_proc["arrival_time"] == current_cycle:
-            proc_list.append(Process(i + 1, current_proc["num_pages"] * OSParams.page_size, current_proc["arrival_time"]))
-        else:
-            proc_to_be_created_list.append(Process(i + 1, current_proc["num_pages"], current_proc["arrival_time"]))
-
-    print "Numero de frames = ", len(primaryMemory.actual_memory)
+    # print "Numero de frames = ", len(primaryMemory.actual_memory)
 
     while proc_list:
-        primaryMemory.proc_to_memory_fifo(proc_list[0], proc_list, current_cycle)
-        print "Cycle: ", current_cycle
-        print "Free frames: ", primaryMemory.free_frames
-        print "Proc list: ", [proc_list[i].pid for i in xrange(0, len(proc_list))]
+        if scheduling_policy.lower() == 'fifo':
+            primaryMemory.proc_to_memory_fifo(proc_list[0], proc_list, current_cycle)
+        elif scheduling_policy.lower() == 'lru':
+            primaryMemory.proc_to_memory_lru(proc_list[0], proc_list, current_cycle)
+        elif scheduling_policy.lower() == 'opt':
+            primaryMemory.proc_to_memory_opt(proc_list[0], proc_list, current_cycle)
 
-        print_memory(primaryMemory.actual_memory)
+        """print "Cycle: ", current_cycle
+        print "Free frames: ", primaryMemory.free_frames
+        print "Proc list: ", [proc_list[i].pid for i in xrange(0, len(proc_list))]"""
+        # print_memory(primaryMemory.actual_memory)
 
         # Exclui processo da memória caso a execução tenha terminado
-        if proc_list[0].next_to_be_executed == len(proc_list[0].pages):
+        if proc_list[0].next_to_be_executed == len(proc_list[0].page_exec_order):
             proc_dict[proc_list[0].pid] = current_cycle - proc_list[0].arrival_time
-            """for i in xrange(0, len(primaryMemory.actual_memory)):
-                # Exclui processo da memória caso a execução tenha terminado
-                if primaryMemory.actual_memory[i] != -1 and (primaryMemory.actual_memory[i].owners_pid == proc_list[0].pid):
-                    primaryMemory.actual_memory[i] = -1
-                    primaryMemory.free_frames.append(i)"""
             for page_addr in proc_list[0].page_table:
                 if page_addr != -1:
                     primaryMemory.actual_memory[page_addr] = -1
@@ -70,10 +81,10 @@ def fifo():
             if current_proc.arrival_time == current_cycle:
                 proc_list.append(current_proc)
 
-    print proc_dict
-
-    def sjf_round_robin():
-        pass
+    # print proc_dict
+    print "Page faults - " + scheduling_policy.upper() + ": " + str(primaryMemory.page_faults)
 
 if __name__ == '__main__':
-    fifo()
+    run('fifo')
+    run('lru')
+    run('opt')
