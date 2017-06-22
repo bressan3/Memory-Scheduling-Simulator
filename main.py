@@ -7,7 +7,7 @@ from Process import Process
 import sys
 import json
 
-process_file = 'Processes3.json'
+process_file = 'Processes2.json'
 
 def print_memory(actual_memory):
     print "======================================="
@@ -57,8 +57,9 @@ def run(scheduling_policy):
 
         """print "Cycle: ", current_cycle
         print "Free frames: ", primaryMemory.free_frames
-        print "Proc list: ", [proc_list[i].pid for i in xrange(0, len(proc_list))]"""
-        # print_memory(primaryMemory.actual_memory)
+        print "Proc list: ", [proc_list[i].pid for i in xrange(0, len(proc_list))]
+        print proc_list[i].page_exec_order[proc_list[i].next_to_be_executed:]
+        print_memory(primaryMemory.actual_memory)"""
 
         # Exclui processo da memória caso a execução tenha terminado
         if proc_list[0].next_to_be_executed == len(proc_list[0].page_exec_order):
@@ -70,7 +71,7 @@ def run(scheduling_policy):
         else:
             proc_list.append(proc_list[0])
         proc_list.pop(0)
-        current_cycle += 1
+        current_cycle += OSParams.pages_per_cycle
 
         """ 
             Confere se existe algum processo para ser criado no novo ciclo. Caso exista, este processo(s) é(são) 
@@ -82,7 +83,7 @@ def run(scheduling_policy):
                 proc_list.append(current_proc)
 
     # print proc_dict
-    print "Page faults - " + scheduling_policy.upper() + ": " + str(primaryMemory.page_faults)
+    print "Page faults - " + scheduling_policy.upper() + ": " + str(primaryMemory.page_faults) + ", Page hits: " + str(primaryMemory.page_hits)
 
 if __name__ == '__main__':
     run('fifo')

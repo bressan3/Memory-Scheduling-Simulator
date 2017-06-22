@@ -12,6 +12,7 @@ class PrimaryMemory(object):
     actual_memory = None # Vetor representando a memória. Cada índice é uma página
     free_frames = None # Vetor contendo o índice dos frames desocupados da memória principal
     page_faults = None
+    page_hits = None
 
     def __init__(self, installed_memory, page_size):
         super(PrimaryMemory, self).__init__()
@@ -21,6 +22,7 @@ class PrimaryMemory(object):
         self.actual_memory = []
         self.free_frames = []
         self.page_faults = 0
+        self.page_hits = 0
         for i in xrange(0, int(self.end_addr, 16) / page_size):
             self.actual_memory.append(-1)
             self.free_frames.append(i)
@@ -63,6 +65,7 @@ class PrimaryMemory(object):
                     process.page_table[index] = self.free_frames[0]
                     self.free_frames.pop(0)
                 if self.page_in_memory(process.pages[index]):
+                    self.page_hits += 1
                     process.pages[index].last_used = current_cycle
                     process.next_to_be_executed += 1
                     break
@@ -110,6 +113,7 @@ class PrimaryMemory(object):
                     process.page_table[index] = self.free_frames[0]
                     self.free_frames.pop(0)
                 if self.page_in_memory(process.pages[index]):
+                    self.page_hits += 1
                     process.pages[index].last_used = current_cycle
                     process.next_to_be_executed += 1
                     break
@@ -156,7 +160,8 @@ class PrimaryMemory(object):
                         nós verificamos se esta página será chamada futuramente. Caso seja, calculamos
                         um novo valor de optimal e setamos ela como a página a ser retornada pela função
                     """
-                    to_be_executed = proc.page_exec_order[process.next_to_be_executed:]
+                    to_be_executed = proc.page_exec_order[process.next_to_be_executed:process.next_to_be_executed + (OSParams.installed_memory / OSParams.page_size)]
+                    # to_be_executed = proc.page_exec_order[process.next_to_be_executed:]
                     proc_index = self.get_process_index(proc.pid, proc_list)
                     for current_page_id in to_be_executed:
                         """
@@ -198,6 +203,7 @@ class PrimaryMemory(object):
                     process.page_table[index] = self.free_frames[0]
                     self.free_frames.pop(0)
                 if self.page_in_memory(process.pages[index]):
+                    self.page_hits += 1
                     process.pages[index].last_used = current_cycle
                     process.next_to_be_executed += 1
                     break
